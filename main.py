@@ -129,11 +129,6 @@ class Article(SimpleLinkable):
         return self
 
 
-def chunk(big_list, size):
-    for small_list in range(0, len(big_list), size):
-        yield big_list[small_list:small_list + size]
-
-
 main_collection = Collection(name='all', articles_per_page=2)
 site = Site(
     site_name='test site',
