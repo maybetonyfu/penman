@@ -9,9 +9,8 @@ python_version = "3.6"
 [packages]
 
 [dev-packages]
-pylint = "*"
 pyinstaller = "*"
 "flake8" = "*"
 "autopep8" = "*"
-rope = "*"
+"rope" = "*"
 "flake8-bugbear" = "*"
