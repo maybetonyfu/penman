@@ -9,7 +9,7 @@ python_version = "3.6"
 [packages]
 
 [dev-packages]
-pyinstaller = "*"
+"pyinstaller" = "*"
 "flake8" = "*"
 "autopep8" = "*"
 "rope" = "*"
