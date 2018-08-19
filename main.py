@@ -1,5 +1,4 @@
 from pathlib import Path
-# from pprint import pprint
 
 
 class Linkable(object):
@@ -26,24 +25,19 @@ class SimpleLinkable(Linkable):
 
 
 class Site (object):
-    def __init__(
-        self,
-        *,
-        site_name=None,
-        site_root_path=None
-    ):
-        self._site_name = site_name
-        self._site_root_path = Path(site_root_path).resolve()
+    def __init__(self, *, name=None, path=None):
+        self._name = name
+        self._path = Path(path).resolve()
         self._articles = []
         self._collections = {}
 
     @property
-    def site_name(self):
-        return self._site_name
+    def name(self):
+        return self._name
 
     @property
-    def site_root_path(self):
-        return self._site_root_path
+    def path(self):
+        return self._path
 
     @property
     def articles(self):
@@ -54,20 +48,15 @@ class Site (object):
         return self._collections
 
     def scan(self):
-        for path in self.site_root_path.iterdir():
-            mark_down_path = path / 'index.md'
-            if mark_down_path.exists():
-                article_source_file_path = path
-                article_title = path.name
-                article = Article(
-                    title=article_title,
-                    source_file_path=article_source_file_path
-                )
-                self.articles.append(article)
-                self.collections.get('all').add_article(article)
-                print(f'Added article {article.title}')
-            else:
-                continue
+        for path in self.path.glob('*/index.md'):
+            article_title = path.name
+            article = Article(
+                title=article_title,
+                path=path
+            )
+            self.articles.append(article)
+            self.collections.get('all').add_article(article)
+            print(f'Added article {article.title}')
 
 
 class Collection(SimpleLinkable):
@@ -100,9 +89,9 @@ class Collection(SimpleLinkable):
 
 
 class Article(SimpleLinkable):
-    def __init__(self, *, title=None, source_file_path=None):
+    def __init__(self, *, title=None, path=None):
         self._title = title
-        self._source_file_path = source_file_path
+        self._path = path
 
     @property
     def created_date(self):
@@ -117,8 +106,8 @@ class Article(SimpleLinkable):
         return self._title
 
     @property
-    def source_file_path(self):
-        return self._source_file_path
+    def path(self):
+        return self._path
 
     @property
     def final_file_path(self):
@@ -130,9 +119,6 @@ class Article(SimpleLinkable):
 
 
 main_collection = Collection(name='all', articles_per_page=2)
-site = Site(
-    site_name='test site',
-    site_root_path='.'
-)
+site = Site(name='test site', path='.')
 site.collections['all'] = main_collection
 site.scan()
