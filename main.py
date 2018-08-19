@@ -4,7 +4,7 @@ from pathlib import Path
 class Linkable(object):
     @property
     def link(self):
-        return self.make_link(self.source_name)
+        return self.make_link(self.name)
 
     @staticmethod
     def make_link(source_name):
@@ -49,10 +49,9 @@ class Site (object):
 
     def scan(self):
         for path in self.path.glob('*/index.md'):
-            article_title = path.name
             article = Article(
-                title=article_title,
-                path=path
+                name=path.parent.name,
+                path=path.parent
             )
             self.articles.append(article)
             self.collections.get('all').add_article(article)
@@ -89,8 +88,8 @@ class Collection(SimpleLinkable):
 
 
 class Article(SimpleLinkable):
-    def __init__(self, *, title=None, path=None):
-        self._title = title
+    def __init__(self, *, name=None, path=None):
+        self._name = name
         self._path = path
 
     @property
@@ -102,23 +101,23 @@ class Article(SimpleLinkable):
         return self
 
     @property
+    def name(self):
+        return self._name
+
+    @property
     def title(self):
-        return self._title
+        return self._name
 
     @property
     def path(self):
         return self._path
 
-    @property
-    def final_file_path(self):
-        return self
-
-    @property
-    def collections(self):
-        return self
+    def __repr__(self):
+        return f'Article(name="{self.name}")'
 
 
 main_collection = Collection(name='all', articles_per_page=2)
 site = Site(name='test site', path='.')
 site.collections['all'] = main_collection
 site.scan()
+print(site.collections['all'].page_list)
