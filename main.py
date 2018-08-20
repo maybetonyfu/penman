@@ -55,7 +55,6 @@ class Site (object):
             )
             self.articles.append(article)
             self.collections.get('all').add_article(article)
-            print(f'Added article {article.title}')
 
 
 class Collection(SimpleLinkable):

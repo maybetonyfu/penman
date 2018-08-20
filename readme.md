@@ -1,0 +1,1 @@
+pex . -c main.py -o build/penman.pex
