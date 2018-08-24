@@ -1,19 +1,19 @@
 from pathlib import Path
 
 
-class Linkable(object):
+class SlugProvider(object):
     @property
-    def link(self):
+    def slug(self):
         return self.make_link(self.name)
 
     @staticmethod
-    def make_link(source_name):
+    def slugify(source_name):
         raise NotImplementedError()
 
 
-class SimpleLinkable(Linkable):
+class SimpleSlugProvider(SlugProvider):
     @staticmethod
-    def make_link(source_text):
+    def slugify(source_text):
         connector = '-'
         slug_chars = []
         for char in source_text:
@@ -22,6 +22,20 @@ class SimpleLinkable(Linkable):
             elif char.isspace():
                 slug_chars.append(connector)
         return ''.join(slug_chars).strip(connector).lower()
+
+
+class Page ():
+    @property
+    def link(self):
+        raise NotImplementedError()
+
+    @property
+    def markdown_view(self):
+        raise NotImplementedError()
+
+    @property
+    def html_view(self):
+        raise NotImplementedError()
 
 
 class Site (object):
@@ -57,7 +71,7 @@ class Site (object):
             self.collections.get('all').add_article(article)
 
 
-class Collection(SimpleLinkable):
+class Collection(SimpleSlugProvider):
     def __init__(self, *, name=None, articles_per_page=2):
         self._name = name
         self._flat_list = []
@@ -86,7 +100,7 @@ class Collection(SimpleLinkable):
         return [self.flat_list[i:i + step] for i in starts]
 
 
-class Article(SimpleLinkable):
+class Article(SimpleSlugProvider, Page):
     def __init__(self, *, name=None, path=None):
         self._name = name
         self._path = path
