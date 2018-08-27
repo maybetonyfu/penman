@@ -4,3 +4,4 @@ COPY main.py main.py
 RUN pip install --upgrade pip
 RUN pip install pyinstaller
 CMD ["bash", "-c", "pyinstaller --onefile main.py"]
+

@@ -134,3 +134,4 @@ site = Site(name='test site', path='.')
 site.collections['all'] = main_collection
 site.scan()
 print(site.collections['all'].page_list)
+

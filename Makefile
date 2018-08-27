@@ -11,3 +11,4 @@ build: build-exe
 	@echo "Copy exe from container"
 	docker cp penman:/root/dist/main penman
 	docker rm -vf penman
+
