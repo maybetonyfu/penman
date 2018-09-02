@@ -22,11 +22,19 @@ class Page ():
     def index(self):
         return self._index
 
+    @property
+    def markdown(self):
+        raise NotImplementedError("Penman does not know how to get markdown")
+
     def build(self):
         content = ''
         for article in self.articles:
             content += f'{article.title} {article.path}'
         return content
+
+    def render(self):
+        html = mistune.markdown(self.markdown)
+        return html
 
 
 class Site (object):
