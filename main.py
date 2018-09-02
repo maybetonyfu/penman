@@ -79,7 +79,6 @@ class Collection(HasSlug):
     def __init__(self, *, name=None, articles_per_page=2):
         self._name = name
         self._articles = []
-        self._pages = []
         self._articles_per_page = articles_per_page
 
     @property
@@ -99,15 +98,11 @@ class Collection(HasSlug):
 
     @property
     def pages(self):
-        if not len(self._pages) is 0:
-            return self.pages
         step = self.articles_per_page
         starts = range(0, len(self.articles), step)
-        for index, start in enumerate(starts, start=1):
-            articles_slice = self.articles[start:start + step]
-            page = Page(articles=articles_slice, index=index)
-            self._pages.append(page)
-        return self._pages
+        for index, begin in enumerate(starts, start=1):
+            articles_slice = self.articles[begin:begin + step]
+            yield Page(articles=articles_slice, index=index)
 
     def build(self, *, path=None):
         html_path = path / 'public' / self.slug
