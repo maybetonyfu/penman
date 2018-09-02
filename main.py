@@ -1,28 +1,12 @@
 from pathlib import Path
+from slugify import slugify
 import mistune
 
 
-class WithSlug(object):
+class HasSlug():
     @property
     def slug(self):
-        return self.slugify(self.name)
-
-    @staticmethod
-    def slugify(source_name):
-        raise NotImplementedError()
-
-
-class WithSimpleSlug(WithSlug):
-    @staticmethod
-    def slugify(source_text):
-        connector = '-'
-        slug_chars = []
-        for char in source_text:
-            if char.isalnum():
-                slug_chars.append(char)
-            elif char.isspace():
-                slug_chars.append(connector)
-        return ''.join(slug_chars).strip(connector).lower()
+        return slugify(self.name)
 
 
 class Page ():
@@ -91,7 +75,7 @@ class Site (object):
             collection.build(path=self.path)
 
 
-class Collection(WithSimpleSlug):
+class Collection(HasSlug):
     def __init__(self, *, name=None, articles_per_page=2):
         self._name = name
         self._articles = []
@@ -126,14 +110,14 @@ class Collection(WithSimpleSlug):
         return self._pages
 
     def build(self, *, path=None):
-        html_path = path / 'public' / self.slugify(self.name)
+        html_path = path / 'public' / self.slug
         html_path.mkdir(parents=True, exist_ok=True)
         for page in self.pages:
             file_path = html_path / (f'{page.index}.html')
             file_path.write_text(page.build())
 
 
-class Article(WithSimpleSlug):
+class Article(HasSlug):
     def __init__(self, *, name=None, path=None):
         self._name = name
         self._path = path

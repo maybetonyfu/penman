@@ -8,10 +8,10 @@ python_version = "3.6"
 
 [packages]
 mistune = "*"
+python-slugify = "*"
 
 [dev-packages]
 "flake8" = "*"
 "autopep8" = "*"
 "rope" = "*"
 "flake8-bugbear" = "*"
-
