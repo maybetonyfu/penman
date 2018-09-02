@@ -1,17 +1,18 @@
 from pathlib import Path
+import mistune
 
 
-class SlugProvider(object):
+class WithSlug(object):
     @property
     def slug(self):
-        return self.make_link(self.name)
+        return self.slugify(self.name)
 
     @staticmethod
     def slugify(source_name):
         raise NotImplementedError()
 
 
-class SimpleSlugProvider(SlugProvider):
+class WithSimpleSlug(WithSlug):
     @staticmethod
     def slugify(source_text):
         connector = '-'
@@ -25,17 +26,23 @@ class SimpleSlugProvider(SlugProvider):
 
 
 class Page ():
-    @property
-    def link(self):
-        raise NotImplementedError()
+    def __init__(self, *, articles=None, index=None):
+        self._articles = articles
+        self._index = index
 
     @property
-    def markdown_view(self):
-        raise NotImplementedError()
+    def articles(self):
+        return self._articles
 
     @property
-    def html_view(self):
-        raise NotImplementedError()
+    def index(self):
+        return self._index
+
+    def build(self):
+        content = ''
+        for article in self.articles:
+            content += f'{article.title} {article.path}'
+        return content
 
 
 class Site (object):
@@ -70,12 +77,25 @@ class Site (object):
             self.articles.append(article)
             self.collections.get('all').add_article(article)
 
+    def ensure_public_dir(self):
+        public_dir = self.path / 'public'
+        public_dir.mkdir(parents=True, exist_ok=True)
 
-class Collection(SimpleSlugProvider):
+    def build_articles(self):
+        self.ensure_public_dir()
+        for article in self.articles:
+            article.build()
+
+    def build_collections(self):
+        for collection in self.collections.values():
+            collection.build(path=self.path)
+
+
+class Collection(WithSimpleSlug):
     def __init__(self, *, name=None, articles_per_page=2):
         self._name = name
-        self._flat_list = []
-        self._page_list = []
+        self._articles = []
+        self._pages = []
         self._articles_per_page = articles_per_page
 
     @property
@@ -87,20 +107,33 @@ class Collection(SimpleSlugProvider):
         return self._articles_per_page
 
     def add_article(self, article):
-        self._flat_list.append(article)
+        self._articles.append(article)
 
     @property
-    def flat_list(self):
-        return self._flat_list
+    def articles(self):
+        return self._articles
 
     @property
-    def page_list(self):
+    def pages(self):
+        if not len(self._pages) is 0:
+            return self.pages
         step = self.articles_per_page
-        starts = range(0, len(self.flat_list), step)
-        return [self.flat_list[i:i + step] for i in starts]
+        starts = range(0, len(self.articles), step)
+        for index, start in enumerate(starts, start=1):
+            articles_slice = self.articles[start:start + step]
+            page = Page(articles=articles_slice, index=index)
+            self._pages.append(page)
+        return self._pages
+
+    def build(self, *, path=None):
+        html_path = path / 'public' / self.slugify(self.name)
+        html_path.mkdir(parents=True, exist_ok=True)
+        for page in self.pages:
+            file_path = html_path / (f'{page.index}.html')
+            file_path.write_text(page.build())
 
 
-class Article(SimpleSlugProvider, Page):
+class Article(WithSimpleSlug):
     def __init__(self, *, name=None, path=None):
         self._name = name
         self._path = path
@@ -125,6 +158,12 @@ class Article(SimpleSlugProvider, Page):
     def path(self):
         return self._path
 
+    def build(self):
+        md_path = self.path / 'index.md'
+        html_path = self.path.parent / 'public' / (self.slug + '.html')
+        html = mistune.markdown(md_path.read_text())
+        html_path.write_text(html)
+
     def __repr__(self):
         return f'Article(name="{self.name}")'
 
@@ -133,5 +172,5 @@ main_collection = Collection(name='all', articles_per_page=2)
 site = Site(name='test site', path='.')
 site.collections['all'] = main_collection
 site.scan()
-print(site.collections['all'].page_list)
-
+site.build_articles()
+site.build_collections()
